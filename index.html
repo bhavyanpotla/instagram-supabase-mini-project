@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Database Mini-Project | Supabase</title>
+    <style>
+        :root {
+            --bg: #090d16;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-hover: rgba(255, 255, 255, 0.06);
+            --accent-pink: #e1306c;
+            --accent-purple: #833ab4;
+            --accent-orange: #f56040;
+            --accent-gradient: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --code-bg: rgba(0, 0, 0, 0.5);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 40px 20px;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(131, 58, 180, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(225, 48, 108, 0.15) 0px, transparent 50%),
+                radial-gradient(at 50% 50%, rgba(245, 96, 64, 0.08) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Glassmorphism Header */
+        header {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 40px 30px;
+            text-align: center;
+            margin-bottom: 40px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        header h1 {
+            font-size: 2.8rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: var(--accent-gradient);
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 12px;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            margin-bottom: 24px;
+        }
+
+        .badge-container {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: var(--text-main);
+            backdrop-filter: blur(4px);
+        }
+
+        .section-title {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin: 50px 0 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: var(--accent-gradient);
+            border-radius: 2px;
+        }
+
+        /* Schema Display */
+        .schema-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .schema-card:hover {
+            border-color: rgba(225, 48, 108, 0.4);
+            transform: translateY(-2px);
+        }
+
+        /* 5-Table Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 24px;
+        }
+
+        .card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            background: var(--glass-hover);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4);
+        }
+
+        .card h3 {
+            font-size: 1.2rem;
+            color: var(--text-main);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card h3 span {
+            font-size: 0.75rem;
+            color: var(--accent-orange);
+            background: rgba(245, 96, 64, 0.1);
+            padding: 4px 10px;
+            border-radius: 12px;
+            border: 1px solid rgba(245, 96, 64, 0.2);
+        }
+
+        .img-wrapper {
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--glass-border);
+            background: rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .img-wrapper img {
+            width: 100%;
+            height: auto;
+            display: block;
+            transition: transform 0.5s ease;
+        }
+
+        .card:hover .img-wrapper img {
+            transform: scale(1.02);
+        }
+
+        /* SQL Code Blocks */
+        pre {
+            background: var(--code-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 16px;
+            overflow-x: auto;
+            font-size: 0.85rem;
+            color: #38bdf8;
+            line-height: 1.5;
+        }
+
+        /* Viva Cards */
+        .viva-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .viva-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 20px;
+        }
+
+        .viva-card h4 {
+            color: #38bdf8;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        .viva-card p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 0 20px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--glass-border);
+            margin-top: 60px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <!-- Header -->
+        <header>
+            <h1>Instagram Database Mini-Project</h1>
+            <p>Relational Database Architecture built with Supabase (PostgreSQL)</p>
+            <div class="badge-container">
+                <span class="badge">100+ Realistic Records</span>
+                <span class="badge">5 Interconnected Tables</span>
+                <span class="badge">CRUD Operations</span>
+                <span class="badge">Aggregate Analytics</span>
+            </div>
+        </header>
+
+        <!-- Section 1: Schema Visualizer -->
+        <h2 class="section-title">1. Entity Relationship & Schema Layout</h2>
+        <div class="schema-card">
+            <div class="img-wrapper">
+                <img src="imgs/supabase-schema-oreetdtpdtoghjqsmuwq.png" alt="Supabase Schema Visualizer">
+            </div>
+        </div>
+
+        <!-- Section 2: Table Data Screenshots -->
+        <h2 class="section-title">2. Database Tables & Live Records</h2>
+        <div class="grid">
+            
+            <div class="card">
+                <h3>Users Table <span>10 Rows</span></h3>
+                <div class="img-wrapper">
+                    <img src="imgs/users.png" alt="Users Table Data">
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Followers Table <span>20 Rows</span></h3>
+                <div class="img-wrapper">
+                    <img src="imgs/followers.png" alt="Followers Table Data">
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Posts Table <span>15 Rows</span></h3>
+                <div class="img-wrapper">
+                    <img src="imgs/posts.png" alt="Posts Table Data">
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Comments Table <span>30 Rows</span></h3>
+                <div class="img-wrapper">
+                    <img src="imgs/comments.png" alt="Comments Table Data">
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Likes Table <span>45 Rows</span></h3>
+                <div class="img-wrapper">
+                    <img src="imgs/likes.png" alt="Likes Table Data">
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Section 3: Executed SQL Queries -->
+        <h2 class="section-title">3. Tested SQL Operations</h2>
+        <div class="grid">
+            
+            <div class="card">
+                <h3>Relational SELECT Query (JOINs)</h3>
+                <pre><code>SELECT 
+    p.post_id,
+    u.username AS creator,
+    p.caption,
+    p.location
+FROM posts p
+JOIN users u ON p.user_id = u.user_id
+ORDER BY p.created_at DESC;</code></pre>
+            </div>
+
+            <div class="card">
+                <h3>Aggregate Functions Query</h3>
+                <pre><code>SELECT 
+    p.user_id,
+    u.username,
+    COUNT(l.user_id) AS likes_count
+FROM posts p
+JOIN users u ON p.user_id = u.user_id
+LEFT JOIN likes l ON p.post_id = l.post_id
+GROUP BY p.user_id, u.username
+ORDER BY likes_count DESC;</code></pre>
+            </div>
+
+        </div>
+
+        <!-- Section 4: Oral Defense Prep -->
+        <h2 class="section-title">4. Viva Evaluation Cheat Sheet</h2>
+        <div class="viva-grid">
+            <div class="viva-card">
+                <h4>Q: Why use a Composite Primary Key in `followers`?</h4>
+                <p><code>PRIMARY KEY (follower_id, following_id)</code> enforces uniqueness at the database level so a user can never follow the exact same account twice.</p>
+            </div>
+
+            <div class="viva-card">
+                <h4>Q: How is data integrity handled on user deletion?</h4>
+                <p>We use <code>ON DELETE CASCADE</code> on foreign keys. Deleting a user automatically purges their posts, comments, likes, and follower relationships.</p>
+            </div>
+
+            <div class="viva-card">
+                <h4>Q: What does the aggregate query compute?</h4>
+                <p>It groups posts by creator using <code>GROUP BY</code> and computes total likes using <code>COUNT()</code>, handling posts with 0 likes via <code>LEFT JOIN</code>.</p>
+            </div>
+        </div>
+
+        <footer>
+            <p>Individual Database Mini-Project | Prepared with Supabase & PostgreSQL</p>
+        </footer>
+
+    </div>
+
+</body>
+</html>
